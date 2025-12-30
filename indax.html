@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>Al Hurea Security Services | Vehicle Inspection Report</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Excel Library -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+<style>
+body{
+  margin:100;
+  background:#0b1220;
+  color:#ffffff;
+  font-family:system-ui,Segoe UI,Arial
+}
+.container{
+  max-width:1100px;
+  margin:500;
+  padding:50px
+}
+header{
+  background:#101a2f;
+  padding:20px;
+  border-radius:160px;
+  display:flex;
+  align-items:center;
+  gap:250px
+}
+header img{height:100px}
+h1{margin:0;font-size:20px}
+small{color:#8aa0c6}
+.card{
+  background:#101a2f;
+  padding:16px;
+  border-radius:16px;
+  margin-top:16px
+}
+label{
+  display:block;
+  margin-top:20px;
+  font-size:14px;
+  color:#ffffff
+}
+input,select,textarea{
+  width:100%;
+  padding:10px;
+  border-radius:10px;
+  border:1px solid #ffac31;
+  background:#0b1220;
+  color:#fff
+}
+textarea{
+  min-height:100px;
+  resize:vertical
+}
+.counter{
+  font-size:10px;
+  text-align:left;
+  color:#8aa0c6
+}
+button{
+  margin-top:12px;
+  padding:30px 14px;
+  border-radius:12px;
+  border:none;
+  font-weight:700;
+  cursor:pointer
+}
+.btn{background:#1b2745;color:#fff}
+.btn-main{background:#4da3ff;color:#06111f}
+.btn-wa{background:#35d07f;color:#06110a}
+.preview{
+  white-space:pre-wrap;
+  background:#0b1220;
+  border:1px dashed #3b4c77;
+  border-radius:12px;
+  padding:12px;
+  margin-top:12px
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<header>
+  <img src="Logo.webp" alt="AHS Logo">
+  <h1>
+    شركة الحرية للخدمات الامنية<br>
+    <small>Vehicle Inspection Report</small>
+  </h1>
+</header>
+
+<!-- REPORT FORM -->
+<div class="card">
+<h3>تقرير فحص مركبة</h3>
+
+<label>اسم السائق</label>
+<input id="driverName">
+
+<label>اسم الفريق</label>
+<input id="teamName">
+
+<label>موقع المركبة</label>
+<input id="location">
+
+<label>عداد الكيلو متر الحالي</label>
+<input type="number" id="currentKm">
+
+<label>عداد الكيلو متر القادم (موعد الصيانة)</label>
+<input type="number" id="nextKm">
+
+<label> رقم صاحب التقرير</label>
+<input id="reporterPhone">
+
+<label>حالة الزيت</label>
+<select id="oilStatus">
+  <option>جيد</option>
+  <option>يحتاج إضافة</option>
+  <option>يحتاج تبديل</option>
+</select>
+
+<label>كمية الزيت</label>
+<select id="oilQty">
+  <option>كاملة</option>
+  <option>نصف</option>
+  <option>قليلة</option>
+</select>
+
+<label>حالة الإطارات</label>
+<select id="tiresStatus">
+  <option>جيدة</option>
+  <option>تحتاج فحص</option>
+  <option>تحتاج تبديل</option>
+</select>
+
+<label> لون العجلة</label>
+<select id="vehicleColor">
+    <option>ابيض</option>
+    <option>اسود</option>
+</select>
+
+<label> موديل العجلة</label>
+<input id="vehicleModel">
+
+<label> نوع العجلة</label>
+<input id="vehicleType" placeholder="مثال: Hilux / Land Cruiser / Coaster">
+
+<label> الملاحظات (إن وجدت)</label>
+<textarea id="notes" maxlength="400"></textarea>
+<div class="counter" id="count">0 / 400</div>
+
+<label>رقم واتساب المستلم (اختياري)</label>
+<input id="wa" placeholder="9647XXXXXXXX">
+
+<button class="btn-main" onclick="buildReport()">إنشاء التقرير</button>
+<button class="btn-wa" onclick="sendWhatsApp()">إرسال واتساب</button>
+<button class="btn" onclick="exportExcel()">تصدير إلى Excel</button>
+
+<div class="preview" id="preview">—</div>
+</div>
+
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const today = new Date().toISOString().split("T")[0];
+
+$("notes").oninput = () => {
+  $("count").innerText = $("notes").value.length + " / 400";
+};
+
+function buildReport(){
+const report =
+`شركة الحرية للخدمات الامنية
+Al Hurea Security Services
+Vehicle Inspection Report
+--------------------------------
+Date: ${today}
+
+Driver Name        : ${$("driverName").value}
+Team Name          : ${$("teamName").value}
+Vehicle Location   : ${$("location").value}
+Current Odometer   : ${$("currentKm").value}
+Next Service KM    : ${$("nextKm").value}
+Reporter Phone     : ${$("reporterPhone").value}
+Oil Status         : ${$("oilStatus").value}
+Oil Quantity       : ${$("oilQty").value}
+Tires Status       : ${$("tiresStatus").value}
+Vehicle Color     : ${$("vehicleColor").value}
+Vehicle Model     : ${$("vehicleModel").value}
+Vehicle Type      : ${$("vehicleType").value}
+
+Notes:
+${$("notes").value || "No notes"}
+
+— End of Report —`;
+
+$("preview").innerText = report;
+return report;
+}
+
+function sendWhatsApp(){
+  const text = encodeURIComponent(buildReport());
+  const num  = $("wa").value.replace(/\D/g,"");
+  window.open(`https://wa.me/${num}?text=${text}`,"_blank");
+}
+
+function exportExcel(){
+  const data = [{
+    Date: today,
+    DriverName: $("driverName").value,
+    TeamName: $("teamName").value,
+    Location: $("location").value,
+    CurrentKM: $("currentKm").value,
+    NextServiceKM: $("nextKm").value,
+    ReporterPhone: $("reporterPhone").value,
+    OilStatus: $("oilStatus").value,
+    OilQuantity: $("oilQty").value,
+    TiresStatus: $("tiresStatus").value,
+    VehicleColor: $("vehicleColor").value,
+    VehicleModel: $("vehicleModel").value,
+    VehicleType: $("vehicleType").value,
+    Notes: $("notes").value
+  }];
+
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Vehicle Report");
+  XLSX.writeFile(wb, "Vehicle_Inspection_Report.xlsx");
+}
+</script>
+
+</body>
+</html>
+<header>هذا التقرير تابع الى اسطول العجلات الخاص بشركة الحرية للخدمات الامنية - Sarmed Alhussiny@alhurea51.com - 07835769156 </header>
+   
